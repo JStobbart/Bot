@@ -33,15 +33,8 @@ async def run_style_transfer(content, style, num_steps):
     return out
 
 
-# @dp.message_handler(commands='start')
-# async def transform_picture(message: types.Message):
-#     await message.answer('Send me a content picture')
-#     await Transform.content.set()
-
-
 @dp.message_handler(text='Neural transfer net')
 async def ntn(message: types.Message):
-
 
     await message.answer(text='Neural transfer net', reply_markup=types.ReplyKeyboardRemove())
     await message.answer(f'Send me a content picture')
@@ -267,18 +260,12 @@ async def send_welcome(message: types.Message):
     # await message.reply("Hi!\nI'm Transfer Style Bor!\n/start for transfer style.")
 
 
-
-
-
-
-
-
 @dp.message_handler()
 async def echo(message: types.Message):
     # old style:
     # await bot.send_message(message.chat.id, message.text)
 
-    await message.answer(f"/start for transfer style")
+    await message.answer(f"/start for working")
 
 
 if __name__ == '__main__':
