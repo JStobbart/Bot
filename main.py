@@ -1,6 +1,8 @@
 import os
 import gc
 import logging
+
+import torch
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -11,7 +13,7 @@ from keyboards import inline_keyboard_confirm, inline_keyboard_gan, start_button
 from states import Transform, Gan
 
 from net import run_transfer, get_cnn, get_device, delete_pict, get_img_gan, gpu
-
+from net.net_class import NeuralTransferNet
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,11 +26,13 @@ pict_dir_name = 'data'
 
 
 async def run_style_transfer(content, style, num_steps):
-    device = get_device()
-    cnn = get_cnn(device)
-    out = run_transfer(cnn=cnn, content=content, style=style, num_steps=num_steps,
-                       title=f'{content[:-4]}_styled.jpg')
-    del cnn
+    net = NeuralTransferNet(content, style, num_steps, title=f'{content[:-4]}_styled.jpg')
+    out = net.start()
+    #device = get_device()
+    #cnn = get_cnn(device)
+    #out = run_transfer(cnn=cnn, content=content, style=style, num_steps=num_steps,
+    #                   title=f'{content[:-4]}_styled.jpg')
+    #del cnn
     gc.collect()
     return out
 
