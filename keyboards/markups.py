@@ -2,13 +2,20 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 start_buttons = ReplyKeyboardMarkup(keyboard=[
     [
-        KeyboardButton(text='Neural transfer net')
+        KeyboardButton(text='Neural transfer')
 
     ],
     [
-        KeyboardButton(text='Style GAN')
+        KeyboardButton(text='StyleGAN')
     ],
     [
-        KeyboardButton(text='Cancel')
+        KeyboardButton(text='help')
+    ]
+], resize_keyboard=True, row_width=3)
+
+stop_button = ReplyKeyboardMarkup(keyboard=[
+    [
+        KeyboardButton(text='Stop')
+
     ]
 ], resize_keyboard=True, row_width=3)

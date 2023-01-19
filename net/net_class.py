@@ -1,9 +1,12 @@
+import gc
+
 from torchvision import models
 import torch
 from net.preparePicture import saved, get_content_and_style
 import torch.nn as nn
 import torch.optim as optim
 from net.loss import ContentLoss, StyleLoss
+
 
 class Normalization(nn.Module):
     def __init__(self, mean, std):
@@ -14,19 +17,13 @@ class Normalization(nn.Module):
         self.mean = torch.tensor(mean).view(-1, 1, 1)
         self.std = torch.tensor(std).view(-1, 1, 1)
 
-
     def forward(self, img):
         # normalize img
         return (img - self.mean) / self.std
 
-class NeuralTransferNet():
-    def __init__(self, content, style, num_steps, title):
-        self.content = content
-        self.style = style
-        self.num_steps = num_steps
-        self.title = title
 
-
+class NeuralTransferNet:
+    def __init__(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.cnn = models.vgg19(pretrained=True).features.to(self.device).eval()
 
@@ -34,20 +31,16 @@ class NeuralTransferNet():
         self.cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225]).to(self.device)
         self.content_layers_default = ['conv_16']
         self.style_layers_default = ['conv_1', 'conv_3', 'conv_5', 'conv_9', 'conv_13']
-        print(self.device)
-    def start(self):
-        return self.run_transfer(self.cnn, self.content, self.style, self.num_steps, self.title)
 
-    def get_device(self):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        return device
+    def __del__(self):
+        print("Start destructor...")
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
+        print("Destructed")
 
-    def gpu(self):
-        return 0 if torch.cuda.is_available() else -1
-
-    def get_cnn(self):
-        cnn = models.vgg19(pretrained=True).features.to(self.device).eval()
-        return cnn
+    def start(self, content, style, num_steps, title):
+        return self.run_transfer(self.cnn, content, style, num_steps, title)
 
     def run_transfer(self, cnn, content, style, num_steps, title='test.jpg'):
         content_img, style_img = get_content_and_style(content, style)
