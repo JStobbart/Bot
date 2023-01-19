@@ -1,17 +1,17 @@
 import os
-import gc
 import logging
+
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
-from keyboards import inline_keyboard_confirm, inline_keyboard_gan, start_buttons
+from keyboards import inline_keyboard_confirm, inline_keyboard_gan, start_buttons, stop_button
 
 from states import Transform, Gan
 
-from net import run_transfer, get_cnn, get_device, delete_pict, get_img_gan, gpu
-
+from net import delete_pict, get_img_gan, gpu
+from net.net_class import NeuralTransferNet
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,27 +24,15 @@ pict_dir_name = 'data'
 
 
 async def run_style_transfer(content, style, num_steps):
-    device = get_device()
-    cnn = get_cnn(device)
-    out = run_transfer(cnn=cnn, content=content, style=style, num_steps=num_steps,
-                       title=f'{content[:-4]}_styled.jpg')
-    del cnn
-    gc.collect()
+    net = NeuralTransferNet()
+    out = net.start(content, style, num_steps, title=f'{content[:-4]}_styled.jpg')
     return out
 
 
-# @dp.message_handler(commands='start')
-# async def transform_picture(message: types.Message):
-#     await message.answer('Send me a content picture')
-#     await Transform.content.set()
-
-
-@dp.message_handler(text='Neural transfer net')
+@dp.message_handler(text='Neural transfer')
 async def ntn(message: types.Message):
-
-
-    await message.answer(text='Neural transfer net', reply_markup=types.ReplyKeyboardRemove())
-    await message.answer(f'Send me a content picture')
+    await message.answer(text='Выбран режим: Neural transfer', reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(f'Отправьте мне изображение, которое хотите обработать', reply_markup=stop_button)
     await Transform.content.set()
 
 
@@ -56,7 +44,6 @@ async def get_content(message: types.Message, state: FSMContext):
     if message['photo']:
         content_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg"
         await message.photo[-1].download(destination_file=f"{content_picture}")
-        print(message.photo)
 
     elif message['document']:
         await message.document.download(destination_file=message.document.file_name)
@@ -68,7 +55,7 @@ async def get_content(message: types.Message, state: FSMContext):
         return
 
     await state.update_data(content=content_picture)
-    await message.answer('Send me a style picture')
+    await message.answer('Отправьте мне изображение с которого хотите скопировать стиль')
     await Transform.style.set()
 
 
@@ -78,7 +65,6 @@ async def get_style(message: types.Message, state: FSMContext):
     if message['photo']:
         style_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg"
         await message.photo[-1].download(destination_file=f"{style_picture}")
-        print(message.photo)
 
     elif message['document']:
         await message.document.download(destination_file=message.document.file_name)
@@ -89,13 +75,10 @@ async def get_style(message: types.Message, state: FSMContext):
         await message.answer('Wrong format! \nTry again /start')
         return
     await state.update_data(style=style_picture)
-    await Transform.transformation.set()
-    await message.answer("let's transform...")
-    await message.answer('Please, choose the number of epochs', reply_markup=inline_keyboard_confirm)
+    await message.answer('Выберите глубину копирования стиля. Чем глубже копирование стиля, тем дольше будет идти обработка', reply_markup=inline_keyboard_confirm)
 
 
-@dp.callback_query_handler(text=['50epochs', '300epochs', '500epochs'],
-                           state=Transform.transformation)
+@dp.callback_query_handler(text=['50epochs', '300epochs', '600epochs'], state='*')
 async def agree(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     content = data.get('content')
@@ -104,10 +87,16 @@ async def agree(call: types.CallbackQuery, state: FSMContext):
 
     if call.data == '50epochs':
         epochs = 50
+        sec = 20
+        deep = 'не глубокое'
     elif call.data == '300epochs':
         epochs = 300
-    elif call.data == '500epochs':
-        epochs = 500
+        sec = 40
+        deep = 'среднее'
+    elif call.data == '600epochs':
+        epochs = 600
+        sec = 60
+        deep = 'глубокое'
     else:
         await state.finish()
         # delete pictures
@@ -118,15 +107,16 @@ async def agree(call: types.CallbackQuery, state: FSMContext):
         return
 
     await state.finish()
-    await call.message.answer(f"you chose {epochs} epochs, this may take a while")
-
+    await call.message.answer(f"Вы выбрали: {deep} копирование стиля. Это займет около {sec} секунд...")
     """to neural transfer"""
+
     out = await run_style_transfer(content, style, num_steps=epochs)
 
     pict = types.InputFile(path_or_bytesio=f"{out}")
+    await call.message.answer(f"Готово")
     await dp.bot.send_photo(chat_id=call.message.chat.id, photo=pict)
 
-    # delete pictures
+    # delete pictures from hdd
     for file in [content, style, out]:
         await delete_pict(f"{file}")
     await delete_pict(f"{pict_dir_name}{id_chat}", directory=True)
@@ -138,17 +128,12 @@ async def agree(call: types.CallbackQuery, state: FSMContext):
 ##################
 
 
-@dp.message_handler(text='Style GAN')
+@dp.message_handler(text='StyleGAN')
 async def ntn(message: types.Message):
 
-    await message.answer(text='Style GAN', reply_markup=types.ReplyKeyboardRemove())
-    await message.answer('GAN. Send me a content picture')
+    await message.answer(text='Выбран режим: StyleGAN', reply_markup=stop_button)
+    await message.answer('Отправьте мне изображение, которое хотите обработать')
     await Gan.content_gan.set()
-
-# @dp.message_handler(commands=['gan'])
-# async def send_welcome(message: types.Message):
-#     await message.answer('GAN. Send me a content picture')
-#     await Gan.content_gan.set()
 
 
 @dp.message_handler(state=Gan.content_gan, content_types=[types.ContentType.PHOTO, types.ContentType.DOCUMENT])
@@ -159,9 +144,7 @@ async def get_content(message: types.Message, state: FSMContext):
         content_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg"
         await message.photo[-1].download(destination_file=f"{content_picture}")
 
-        content_picture = get_img_gan(content_picture, title=content_picture)
-
-        print(message.photo)
+        get_img_gan(content_picture, title=content_picture)
 
         await state.update_data(content_gan=f"{message.photo[-1].file_id}.jpg")
 
@@ -176,10 +159,11 @@ async def get_content(message: types.Message, state: FSMContext):
         return
 
     await Gan.style_gan.set()
-    await message.answer('Please, choose the style', reply_markup=inline_keyboard_gan)
+    await message.answer('Выбери стиль', reply_markup=inline_keyboard_gan)
 
 
-@dp.callback_query_handler(text=['style_monet_pretrained', 'style_vangogh_pretrained', 'style_cezanne_pretrained', 'style_ukiyoe_pretrained'],
+@dp.callback_query_handler(text=['style_monet_pretrained', 'style_vangogh_pretrained', 'style_cezanne_pretrained', 'style_ukiyoe_pretrained',
+                                 'summer2winter_yosemite_pretrained', 'winter2summer_yosemite_pretrained'],
                            state=Gan.style_gan)
 async def style_gan(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(style_gan=call.data)
@@ -189,18 +173,9 @@ async def style_gan(call: types.CallbackQuery, state: FSMContext):
     style = data.get('style_gan')
     id_chat = data.get('id_chat_gan')
 
+    await call.message.answer(f"Применяю стиль к исходному изображению...")
 
-    await call.message.answer(f"you chose {call.data[6:-11]} style, this may take a while. GAN is working... ")
-
-    # path = f'python pytorch-CycleGAN-and-pix2pix/test.py ' \
-    #        f'--dataroot /home/stobbart/PycharmProjects/Bot/data{id_chat} ' \
-    #        f'--name /home/stobbart/PycharmProjects/Bot/pretrained_models/{style} ' \
-    #        f'--model test --no_dropout ' \
-    #        f'--gpu_ids {gpu()} ' \
-    #        f'--results_dir /home/stobbart/PycharmProjects/Bot/result/ ' \
-    #        f'--load_size 512 ' \
-    #        f'--display_winsize 512 ' \
-    #        f'--crop_size 512'
+    # Prepare request for StyleGAN
     path = f'python pytorch-CycleGAN-and-pix2pix/test.py ' \
            f'--dataroot ./data{id_chat} ' \
            f'--name pretrained_models/{style} ' \
@@ -210,16 +185,13 @@ async def style_gan(call: types.CallbackQuery, state: FSMContext):
            f'--load_size 512 ' \
            f'--display_winsize 512 ' \
            f'--crop_size 512'
-    os.system(path)
-    # created_path = f"/home/stobbart/PycharmProjects/Bot/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
+    os.system(path) # send params for StyleGAN and start
     created_path = f"./result/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
-    #print(created_path)
     pict = types.InputFile(path_or_bytesio=created_path)
+    await call.message.answer(f"Готово")
     await dp.bot.send_photo(chat_id=call.message.chat.id, photo=pict)
 
     await state.finish()
-
-    """to gan transfer"""
 
     await delete_pict(f"{pict_dir_name}{id_chat}/{content}")
     await delete_pict(f"{created_path}")
@@ -235,7 +207,7 @@ async def cancel(call: types.CallbackQuery, state: FSMContext):
     content = data.get('content_gan')
     await state.finish()
     await delete_pict(f"{content}")
-    await call.message.answer('cancelled')
+    await delete_pict(f"data{call.message.chat.id}", directory=True)
     await call.message.answer(text='Выберите действие: ', reply_markup=start_buttons)
 
 
@@ -247,38 +219,39 @@ async def cancel(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
     await delete_pict(f"{content}")
     await delete_pict(f"{style}")
-    await call.message.answer('cancelled')
+    await delete_pict(f"data{call.message.chat.id}", directory=True)
     await call.message.answer(text='Выберите действие: ', reply_markup=start_buttons)
 
 
-@dp.message_handler(Text(equals=['cancel', '/cancel'], ignore_case=True), state='*')
+@dp.message_handler(Text(equals=['stop', '/stop', 'cancel', '/cancel'], ignore_case=True), state='*')
 async def cancel(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer('cancelled by cancel', reply_markup=types.ReplyKeyboardRemove())
+    await delete_pict(f"data{message.chat.id}", directory=True)
+    await message.answer('Выберите действие: ', reply_markup=start_buttons)
 
 
-@dp.message_handler(commands=['start', 'help'])
+@dp.message_handler(commands=['start'])
+async def send_welcome(message: types.Message):
+    await message.answer(text=f'Привет, {message.chat.username}!\n'
+                              'Бот поддерживает два режима работы:\n'
+                              '1 - Neural Transfer - перенос стиля с одного изображения на другое\n'
+                              '2 - StyleGAN - применения заготовленных стилей к изображению')
+    await message.answer(text='Выберите действие: ', reply_markup=start_buttons)
+
+
+@dp.message_handler(Text(equals=['help', '/help'], ignore_case=True))
 async def send_welcome(message: types.Message):
 
-    """
-    This handler will be called when user sends `/start` or `/help` command
-    """
+    await message.answer(text='Бот поддерживает два режима работы:\n'
+                              '1 - Neural Transfer - перенос стиля с одного изображения на другое\n'
+                              '2 - StyleGAN - применения заготовленных стилей к изображению')
     await message.answer(text='Выберите действие: ', reply_markup=start_buttons)
-    # await message.reply("Hi!\nI'm Transfer Style Bor!\n/start for transfer style.")
-
-
-
-
-
-
 
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    # old style:
-    # await bot.send_message(message.chat.id, message.text)
 
-    await message.answer(f"/start for transfer style")
+    await message.answer(f"/start для начала работы")
 
 
 if __name__ == '__main__':

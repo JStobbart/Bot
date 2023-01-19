@@ -1,5 +1,5 @@
-
 import os
+import shutil
 
 import torch
 from PIL import Image
@@ -16,10 +16,8 @@ def get_image_size():
 
 
 def get_loader(imsize):
-    #imsize = get_image_size()
     loader = transforms.Compose([
         transforms.Resize(imsize),  # scale imported image
-      #  transforms.CenterCrop(imsize),  # centercrop with size
         transforms.ToTensor()])  # transform it into a torch tensor
     return loader
 
@@ -33,16 +31,6 @@ def image_loader(image_name, imsize):
     # fake batch dimension required to fit network's input dimensions
     image = loader(image).unsqueeze(0)
     return image.to(device, torch.float)
-
-
-# def image_loader(image_name, shape):
-#
-#     loader = get_loader(shape[2:])
-#
-#     image = Image.open(image_name)
-#     # fake batch dimension required to fit network's input dimensions
-#     image = loader(image).unsqueeze(0)
-#     return image.to(device, torch.float)
 
 
 def get_content_and_style(content, style):
@@ -68,7 +56,8 @@ def saved(tensor, title='test.jpg'):
 async def delete_pict(file, directory=False):
     if directory:
         try:
-            os.rmdir(file)
+            #os.rmdir(file)
+            shutil.rmtree(file)
         except:
             return False
     else:
@@ -87,4 +76,3 @@ def get_img_gan(img, title):
         transforms.ToTensor()])  # transform it into a torch tensor
     image = loader(image).unsqueeze(0)
     saved(image, title)
-    return title
