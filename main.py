@@ -29,6 +29,11 @@ async def run_style_transfer(content, style, num_steps):
     return out
 
 
+###########################
+"""Neural transfer part"""
+###########################
+
+
 @dp.message_handler(text='Neural transfer')
 async def ntn(message: types.Message):
     await message.answer(text='Выбран режим: Neural transfer', reply_markup=types.ReplyKeyboardRemove())
@@ -46,8 +51,8 @@ async def get_content(message: types.Message, state: FSMContext):
         await message.photo[-1].download(destination_file=f"{content_picture}")
 
     elif message['document']:
-        await message.document.download(destination_file=message.document.file_name)
-        content_picture = message.document.file_name
+        content_picture = f"{pict_dir}/{message.document.file_name}"
+        await message.document.download(destination_file=content_picture)
 
     else:
         await state.finish()
@@ -67,14 +72,15 @@ async def get_style(message: types.Message, state: FSMContext):
         await message.photo[-1].download(destination_file=f"{style_picture}")
 
     elif message['document']:
-        await message.document.download(destination_file=message.document.file_name)
-        style_picture = message.document.file_name
+        style_picture = f"{pict_dir}/{message.document.file_name}"
+        await message.document.download(destination_file=style_picture)
 
     else:
         await state.finish()
         await message.answer('Wrong format! \nTry again /start')
         return
     await state.update_data(style=style_picture)
+
     await message.answer('Выберите глубину копирования стиля. Чем глубже копирование стиля, тем дольше будет идти обработка', reply_markup=inline_keyboard_confirm)
 
 
@@ -114,7 +120,9 @@ async def agree(call: types.CallbackQuery, state: FSMContext):
 
     pict = types.InputFile(path_or_bytesio=f"{out}")
     await call.message.answer(f"Готово")
-    await dp.bot.send_photo(chat_id=call.message.chat.id, photo=pict)
+    await call.message.answer_photo(photo=pict)
+    with open(out, 'rb') as picture:
+        await call.message.answer_document(document=picture)
 
     # delete pictures from hdd
     for file in [content, style, out]:
@@ -150,7 +158,7 @@ async def get_content(message: types.Message, state: FSMContext):
 
     elif message['document']:
         await message.document.download(destination_file=message.document.file_name)
-        content_picture = message.document.file_name
+        content_picture = f"{pict_dir}/{message.document.file_name}"
         await state.update_data(content=content_picture)
 
     else:
@@ -189,7 +197,9 @@ async def style_gan(call: types.CallbackQuery, state: FSMContext):
     created_path = f"./result/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
     pict = types.InputFile(path_or_bytesio=created_path)
     await call.message.answer(f"Готово")
-    await dp.bot.send_photo(chat_id=call.message.chat.id, photo=pict)
+    await call.message.answer_photo(photo=pict)
+    with open(created_path, 'rb') as picture:
+        await call.message.answer_document(document=picture)
 
     await state.finish()
 
@@ -245,6 +255,17 @@ async def send_welcome(message: types.Message):
     await message.answer(text='Бот поддерживает два режима работы:\n'
                               '1 - Neural Transfer - перенос стиля с одного изображения на другое\n'
                               '2 - StyleGAN - применения заготовленных стилей к изображению')
+    await message.answer(text=f"Для режима Neural Transfer доступен выбор глубины переноса стиля:\n"
+                              f"- 'не глубоко' - перенос стиля крайне поверхностный, занимает примерно 15 секунд\n"
+                              f"- 'средне' - рекомендуемая глубина переноса стиля, стиль просматривается на исходном изображении, занимает примерно минуту времени\n"
+                              f"- 'глубоко' - стиль преобладает над исходным изображением, может занять более минуты времени")
+    await message.answer(text=f"Для режима StyleGAN доступны следующие стили:\n"
+                              f"- Monet\n"
+                              f"- Vangogh\n"
+                              f"- Cezanne\n"
+                              f"- ukiyoe (картины (образы) изменчивого мира) - направление в изобразительном искусстве Японии\n"
+                              f"- Лето -> Зима\n"
+                              f"- Зима -> Лето")
     await message.answer(text='Выберите действие: ', reply_markup=start_buttons)
 
 
