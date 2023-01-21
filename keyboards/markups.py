@@ -6,7 +6,7 @@ start_buttons = ReplyKeyboardMarkup(keyboard=[
 
     ],
     [
-        KeyboardButton(text='StyleGAN')
+        KeyboardButton(text='CycleGAN')
     ],
     [
         KeyboardButton(text='help')

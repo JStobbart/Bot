@@ -136,10 +136,10 @@ async def agree(call: types.CallbackQuery, state: FSMContext):
 ##################
 
 
-@dp.message_handler(text='StyleGAN')
+@dp.message_handler(text='CycleGAN')
 async def ntn(message: types.Message):
 
-    await message.answer(text='Выбран режим: StyleGAN', reply_markup=stop_button)
+    await message.answer(text='Выбран режим: CycleGAN', reply_markup=stop_button)
     await message.answer('Отправьте мне изображение, которое хотите обработать')
     await Gan.content_gan.set()
 
@@ -183,7 +183,7 @@ async def style_gan(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.answer(f"Применяю стиль к исходному изображению...")
 
-    # Prepare request for StyleGAN
+    # Prepare request for CycleGAN
     path = f'python pytorch-CycleGAN-and-pix2pix/test.py ' \
            f'--dataroot ./data{id_chat} ' \
            f'--name pretrained_models/{style} ' \
@@ -193,7 +193,7 @@ async def style_gan(call: types.CallbackQuery, state: FSMContext):
            f'--load_size 512 ' \
            f'--display_winsize 512 ' \
            f'--crop_size 512'
-    os.system(path) # send params for StyleGAN and start
+    os.system(path) # send params for CycleGAN and start
     created_path = f"./result/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
     pict = types.InputFile(path_or_bytesio=created_path)
     await call.message.answer(f"Готово")
@@ -246,7 +246,7 @@ async def send_welcome(message: types.Message):
                               f'Бот разработан студенотом Школы глубокого обучения МФТИ в рамках дипломного проекта "Телеграм-боты"'
                               'Бот осуществляет стилизацию изображений двумя способами:\n'
                               '1 - Neural Transfer - перенос стиля с одного изображения на другое\n'
-                              '2 - StyleGAN - применение заготовленных стилей к изображению\n'
+                              '2 - CycleGAN - применение заготовленных стилей к изображению\n'
                               '/help - подробное описание работы бота')
     await message.answer(text='Выберите действие: ', reply_markup=start_buttons)
 
@@ -256,14 +256,14 @@ async def send_welcome(message: types.Message):
 
     await message.answer(text='Бот поддерживает два режима работы:\n'
                               '1 - Neural Transfer - перенос стиля с одного изображения на другое\n'
-                              '2 - StyleGAN - применение заготовленных стилей к изображению')
+                              '2 - CycleGAN - применение заготовленных стилей к изображению')
     await message.answer(text=f"Для режима Neural Transfer в качестве стиля рекомендуется использовать однородное изображение.\n"
                               f"Также доступен выбор глубины переноса стиля:\n"
                               f"- 'не глубоко' - перенос стиля крайне поверхностный\n"
                               f"- 'средне' - рекомендуемая глубина переноса стиля, стиль просматривается на исходном изображении\n"
                               f"- 'глубоко' - стиль преобладает над исходным изображением\n"
                               f"В зависимости от выбранной глубины перенос занимает от 15 секунд до двух минут.")
-    await message.answer(text=f"Для режима StyleGAN доступны следующие стили:\n"
+    await message.answer(text=f"Для режима CycleGAN доступны следующие стили:\n"
                               f"- Monet\n"
                               f"- Vangogh\n"
                               f"- Cezanne\n"
