@@ -3,7 +3,7 @@
 Бот разработан студенотом Школы глубокого обучения МФТИ в рамках дипломного проекта "Телеграм-боты".
 
 Бот осуществляет стилизацию изображений двумя способами:  
-1 - Neural Transfer - перенос стиля с одного изображения на другое  
+1 - Neural Transfer - перенос стиля с одного изображения на другое   
 2 - StyleGAN - применение заготовленных стилей к изображению
 
 Для режима Neural Transfer в качестве стиля рекомендуется использовать однородное изображение.  
@@ -140,6 +140,7 @@ git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
       docker run -gpus all -d bot
       ```
 
-
-
-
+## При создании бота были использованы следующие материалы:
+- статья [A Neural Algorithm of Artistic Style](https://arxiv.org/abs/1508.06576)
+- руководство [NEURAL TRANSFER USING PYTORCH](https://pytorch.org/tutorials/advanced/neural_style_tutorial.html)
+- репозиторий [pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/)
