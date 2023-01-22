@@ -52,7 +52,7 @@ cd Bot
 git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
 ```
 
-- Создайте виртуальное окружение
+- Создайте и активируйте виртуальное окружение
 
 ```bash
 python3 -m venv venv
@@ -73,13 +73,13 @@ source venv/bin/activate
   в переменную окружения API_TOKEN
 
 ```bash
-export API_TOKEN=your telegram bot token
+export API_TOKEN=ВАШ TELEGRAM BOT TOKEN ДОБАВЬТЕ СЮДА
 ```
 
 - запустите бота
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 ### Установка бота для пользователей Docker
@@ -106,7 +106,7 @@ git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
         ```bash
         FROM python:3.9
         WORKDIR /app
-        ENV API_TOKEN="ВАШ API_TOKEN ДОБАВЬТЕ СЮДА"
+        ENV API_TOKEN="ВАШ TELEGRAM BOT TOKEN ДОБАВЬТЕ СЮДА"
         ```
     - Создайте docker image
         ```bash
@@ -126,7 +126,7 @@ git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
         FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
     
         WORKDIR /app
-        ENV API_TOKEN="ВАШ API_TOKEN ДОБАВЬТЕ СЮДА"
+        ENV API_TOKEN="ВАШ TELEGRAM BOT TOKEN ДОБАВЬТЕ СЮДА"
             
         ```  
     - Создайте docker image
