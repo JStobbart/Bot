@@ -22,6 +22,7 @@
 - Vangogh
 - Cezanne
 - ukiyoe (картины (образы) изменчивого мира) - направление в изобразительном искусстве Японии
+- Aivazovsky (предобучен на датасете с [Kaggle](https://www.kaggle.com/competitions/painter-by-numbers/data), логи и графики обучения расположены в директории [Aivazovsky_train_logs](https://github.com/JStobbart/Bot/tree/master/aivazovsky_train_logs))
 - Лето -> Зима
 - Зима -> Лето
 

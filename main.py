@@ -29,6 +29,21 @@ async def run_style_transfer(content, style, num_steps):
     return out
 
 
+async def cycle_gan_connector(id_chat, style, content):
+    path = f'python pytorch-CycleGAN-and-pix2pix/test.py ' \
+           f'--dataroot ./data{id_chat} ' \
+           f'--name pretrained_models/{style} ' \
+           f'--model test --no_dropout ' \
+           f'--gpu_ids {gpu()} ' \
+           f'--results_dir ./result/ ' \
+           f'--load_size 512 ' \
+           f'--display_winsize 512 ' \
+           f'--crop_size 512'
+    os.system(path) # send params for CycleGAN and start
+    created_path = f"./result/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
+    return created_path
+
+
 ###########################
 """Neural transfer part"""
 ###########################
@@ -171,7 +186,7 @@ async def get_content(message: types.Message, state: FSMContext):
 
 
 @dp.callback_query_handler(text=['style_monet_pretrained', 'style_vangogh_pretrained', 'style_cezanne_pretrained', 'style_ukiyoe_pretrained',
-                                 'summer2winter_yosemite_pretrained', 'winter2summer_yosemite_pretrained'],
+                                 'style_aivazovsky_pretrained', 'summer2winter_yosemite_pretrained', 'winter2summer_yosemite_pretrained'],
                            state=Gan.style_gan)
 async def style_gan(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(style_gan=call.data)
@@ -184,17 +199,8 @@ async def style_gan(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer(f"Применяю стиль к исходному изображению...")
 
     # Prepare request for CycleGAN
-    path = f'python pytorch-CycleGAN-and-pix2pix/test.py ' \
-           f'--dataroot ./data{id_chat} ' \
-           f'--name pretrained_models/{style} ' \
-           f'--model test --no_dropout ' \
-           f'--gpu_ids {gpu()} ' \
-           f'--results_dir ./result/ ' \
-           f'--load_size 512 ' \
-           f'--display_winsize 512 ' \
-           f'--crop_size 512'
-    os.system(path) # send params for CycleGAN and start
-    created_path = f"./result/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
+    created_path = await cycle_gan_connector(id_chat, style, content)
+
     pict = types.InputFile(path_or_bytesio=created_path)
     await call.message.answer(f"Готово")
     await call.message.answer_photo(photo=pict)
@@ -268,6 +274,7 @@ async def send_welcome(message: types.Message):
                               f"- Vangogh\n"
                               f"- Cezanne\n"
                               f"- ukiyoe (картины (образы) изменчивого мира) - направление в изобразительном искусстве Японии\n"
+                              f"- Aivazovsky\n"
                               f"- Лето -> Зима\n"
                               f"- Зима -> Лето\n"
                               f"Обработка изображения занимает около 10 секунд")

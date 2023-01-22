@@ -8,6 +8,9 @@ inline_keyboard_gan = InlineKeyboardMarkup(row_width=4, inline_keyboard=[
         InlineKeyboardButton(text='Ukiyoe', callback_data='style_ukiyoe_pretrained')
     ],
     [
+        InlineKeyboardButton(text='Aivazovsky', callback_data='style_aivazovsky_pretrained')
+    ],
+    [
         InlineKeyboardButton(text='Лето -> Зима', callback_data='summer2winter_yosemite_pretrained'),
         InlineKeyboardButton(text='Зима -> Лето', callback_data='winter2summer_yosemite_pretrained')
 
