@@ -1,7 +1,7 @@
 FROM python:3.9
 
-WORKDIR /home
-ENV API_TOKEN="5847266086:AAHYZXQoQH49I3oKzryigAnOZ0BBT-P1RME"
+WORKDIR /app
+ENV API_TOKEN="ВАШ API_TOKEN ДОБАВЬТЕ СЮДА"
 
 COPY requirements_cpu.txt requirements_cpu.txt
 RUN pip3 install -r requirements_cpu.txt
