@@ -1,6 +1,6 @@
 # Bot
 
-Бот разработан студенотом Школы глубокого обучения МФТИ в рамках дипломного проекта "Телеграм-боты".
+Бот разработан [студентом](https://t.me/Satiata) Школы глубокого обучения МФТИ в рамках дипломного проекта "Телеграм-боты".
 
 Бот осуществляет стилизацию изображений двумя способами:  
 1 - Neural Transfer - перенос стиля с одного изображения на другое   
@@ -22,7 +22,7 @@
 - Vangogh
 - Cezanne
 - ukiyoe (картины (образы) изменчивого мира) - направление в изобразительном искусстве Японии
-- Aivazovsky (предобучен на датасете с [Kaggle](https://www.kaggle.com/competitions/painter-by-numbers/data), логи и графики обучения расположены в директории [Aivazovsky_train_logs](https://github.com/JStobbart/Bot/tree/master/aivazovsky_train_logs))
+- Aivazovsky (предобучен на [датасете](https://www.kaggle.com/competitions/painter-by-numbers/data) с Kaggle, логи и графики обучения расположены в директории [Aivazovsky_train_logs](https://github.com/JStobbart/Bot/tree/master/aivazovsky_train_logs))
 - Лето -> Зима
 - Зима -> Лето
 
