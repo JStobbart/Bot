@@ -1,0 +1,12 @@
+FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
+
+WORKDIR /home
+
+ENV API_TOKEN="5847266086:AAHYZXQoQH49I3oKzryigAnOZ0BBT-P1RME"
+
+COPY requirements_gpu.txt requirements_gpu.txt
+RUN pip3 install -r requirements_gpu.txt
+
+COPY . .
+
+ENTRYPOINT ["python3", "main.py"]
