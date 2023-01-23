@@ -23,9 +23,24 @@ class Normalization(nn.Module):
 
 
 class NeuralTransferNet:
+    """
+    Инкапсулированный вариант нейросети по копированию стиля.
+    За основу взят туториал https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
+    Оригинальные комментарии сохранены.
+    За пределы класса вынесены:
+    - функции потерь и матрица Грама
+    - функции предобработки изображений
+    - функция, определяющая доступность использования видеокарты для вычислений
+    """
     def __init__(self):
+        """
+        при инициализации объекта класса создается предобученная vgg19 и ряд переменных, необходимых для работы,
+        например, номера слоев используемых для расчета потерь взяты в соовтетствии со статьей https://arxiv.org/abs/1508.06576
+
+        """
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.cnn = models.vgg19(pretrained=True).features.to(self.device).eval()
+        self.cnn = models.vgg19(weights='DEFAULT').features.to(self.device).eval()
 
         self.cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406]).to(self.device)
         self.cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225]).to(self.device)
@@ -40,14 +55,18 @@ class NeuralTransferNet:
         print("Destructed")
 
     def start(self, content, style, num_steps, title):
+        """
+        Функция запускает нейронную сеть и реализовывает принцип инкапсуляции
+        Возвращает путь до готового изображения
+        """
         return self.run_transfer(self.cnn, content, style, num_steps, title)
 
     def run_transfer(self, cnn, content, style, num_steps, title='test.jpg'):
         content_img, style_img = get_content_and_style(content, style)
         input_img = content_img.clone()
         output = self.run_style_transfer(cnn, self.cnn_normalization_mean, self.cnn_normalization_std,
-                                    content_img, style_img, input_img, num_steps=num_steps, style_weight=1000000,
-                                    content_weight=1)
+                                         content_img, style_img, input_img, num_steps=num_steps, style_weight=1000000,
+                                         content_weight=1)
         saved(output, title=title)
         return title
 
@@ -179,4 +198,3 @@ class NeuralTransferNet:
         # this line to show that input is a parameter that requires a gradient
         optimizer = optim.LBFGS([input_img])
         return optimizer
-

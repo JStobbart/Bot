@@ -1,5 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+"""
+инлайн клавиатуры
 
+"""
 inline_keyboard_gan = InlineKeyboardMarkup(row_width=4, inline_keyboard=[
     [
         InlineKeyboardButton(text='Monet', callback_data='style_monet_pretrained'),

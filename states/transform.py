@@ -2,7 +2,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 """
 классы Finite state machine
-Для двух нейросетей
+Для хранения и использования различных значенийй
 
 """
 
