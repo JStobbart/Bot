@@ -71,8 +71,8 @@ async def delete_pict(file, directory=False):
 def get_img_gan(img, title):
     image = Image.open(img)
     loader = transforms.Compose([
-        transforms.Resize(256),  # scale imported image
-        transforms.CenterCrop(256),  # centercrop with size
+        transforms.Resize(512),  # scale imported image
+        transforms.CenterCrop(512),  # centercrop with size
         transforms.ToTensor()])  # transform it into a torch tensor
     image = loader(image).unsqueeze(0)
     saved(image, title)

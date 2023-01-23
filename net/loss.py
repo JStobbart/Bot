@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class ContentLoss(nn.Module):
 
-    def __init__(self, target,):
+    def __init__(self, target, ):
         super(ContentLoss, self).__init__()
         # we 'detach' the target content from the tree used
         # to dynamically compute the gradient: this is a stated value,

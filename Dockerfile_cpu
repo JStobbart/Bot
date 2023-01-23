@@ -1,0 +1,11 @@
+FROM python:3.9
+
+WORKDIR /app
+ENV API_TOKEN="ВАШ API_TOKEN ДОБАВЬТЕ СЮДА"
+
+COPY requirements_cpu.txt requirements_cpu.txt
+RUN pip3 install -r requirements_cpu.txt
+
+COPY . .
+
+ENTRYPOINT ["python3", "main.py"]

@@ -1,5 +1,9 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
+"""
+обычные клавиатуры
+"""
+
 start_buttons = ReplyKeyboardMarkup(keyboard=[
     [
         KeyboardButton(text='Neural transfer')
