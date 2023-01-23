@@ -24,21 +24,43 @@ pict_dir_name = 'data'
 
 
 async def run_style_transfer(content, style, num_steps):
+    """
+    Функция служит связующим звеном между ботом и нейросетью по копированию стиля (NeuralTransferNet).
+    Функция принимает пути до исходного изображения и изображения стиля, а также число эпох.
+    Создает экземпляр класса нейросети по копированию стиля изображения.
+    Передает полученные значения и параметр title (путь и наименование будущего стилизованного изображения)
+    в метод старт, далее происходит работа сети.
+    Функция возвращает тотже title
+    """
+
     net = NeuralTransferNet()
     out = net.start(content, style, num_steps, title=f'{content[:-4]}_styled.jpg')
     return out
 
 
 async def cycle_gan_connector(id_chat, style, content):
+    """функция служит связующим звеном между ботом и нейросетью CycleGAN.
+    Формирование запроса для CycleGAN:
+    dataroot - директория с изображением пользователя
+    name - наименование предобученной модели
+    model - режим модели test, т.к. мы загружаем предобученную модель
+    no_droput - дропауты не нужны, т.к. тест режим
+    gpu_ids - функция gpu() автоматически определяет доступна ли видеокарта для вычислений (torch.cuda.is_available())
+    results_dir - директория куда будет сохранено итоговое изображение
+    load_size, display_winsize, crop_size - размер изображения 512 если виеокарта доступна и 256 - если нет
+
+    Далее происходит вызов CycleGAN через сформированный запрос в консоль
+    В переменную created_path присваивается путь до обработанного изображения и возвращается боту
+    """
     path = f'python pytorch-CycleGAN-and-pix2pix/test.py ' \
            f'--dataroot ./data{id_chat} ' \
            f'--name pretrained_models/{style} ' \
            f'--model test --no_dropout ' \
            f'--gpu_ids {gpu()} ' \
            f'--results_dir ./result/ ' \
-           f'--load_size 512 ' \
-           f'--display_winsize 512 ' \
-           f'--crop_size 512'
+           f'--load_size {gpu(True)} ' \
+           f'--display_winsize {gpu(True)} ' \
+           f'--crop_size {gpu(True)}'
     os.system(path) # send params for CycleGAN and start
     created_path = f"./result/pretrained_models/{style}/test_latest/images/{content[:-4]}_fake.png"
     return created_path
@@ -51,98 +73,93 @@ async def cycle_gan_connector(id_chat, style, content):
 
 @dp.message_handler(text='Neural transfer')
 async def ntn(message: types.Message):
+    """хэндлер срабатывает при выборе Neural transfer в меню бота
+    (либо при написании этого текста в чат боту)"""
+
     await message.answer(text='Выбран режим: Neural transfer', reply_markup=types.ReplyKeyboardRemove())
     await message.answer(f'Отправьте мне изображение, которое хотите обработать', reply_markup=stop_button)
-    await Transform.content.set()
+    await Transform.content.set()  # готовимся ловить исходное изображение в переменную content, объекта класса Transform
 
 
-@dp.message_handler(state=Transform.content, content_types=[types.ContentType.PHOTO, types.ContentType.DOCUMENT])
+@dp.message_handler(state=Transform.content, content_types=types.ContentType.PHOTO)
 async def get_content(message: types.Message, state: FSMContext):
-    await state.update_data(id_chat=message.chat.id)
-    pict_dir = f"{pict_dir_name}{message.chat.id}"
+    """
+    Хэндлер ловит исходное изображение, предназначенное для перменной content объекта класса Transform (state)
+    При этом, хэндлер сработает только на изображение (параметр content_types)
+    """
 
-    if message['photo']:
-        content_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg"
-        await message.photo[-1].download(destination_file=f"{content_picture}")
+    await state.update_data(id_chat=message.chat.id) # дополнительно ловим id пользователя
+    pict_dir = f"{pict_dir_name}{message.chat.id}"  # нужно для создания отдельных папок для каждого пользователя. Вид - ./dataUSERIDNUMBER/
+    content_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg" # путь для сохранения изображения
+    await message.photo[-1].download(destination_file=f"{content_picture}") # сохранение изображения
 
-    elif message['document']:
-        content_picture = f"{pict_dir}/{message.document.file_name}"
-        await message.document.download(destination_file=content_picture)
-
-    else:
-        await state.finish()
-        await message.answer('Wrong format! \nTry again.')
-        return
-
-    await state.update_data(content=content_picture)
+    await state.update_data(content=content_picture) # полученное изображение (точнее путь до него) передаем в переменную content
     await message.answer('Отправьте мне изображение с которого хотите скопировать стиль')
-    await Transform.style.set()
+    await Transform.style.set() # готовимся ловить исходное изображение в переменную style, объекта класса Transform
 
 
-@dp.message_handler(state=Transform.style, content_types=[types.ContentType.PHOTO, types.ContentType.DOCUMENT])
+@dp.message_handler(state=Transform.style, content_types=types.ContentType.PHOTO)
 async def get_style(message: types.Message, state: FSMContext):
-    pict_dir = f"{pict_dir_name}{message.chat.id}"
-    if message['photo']:
-        style_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg"
-        await message.photo[-1].download(destination_file=f"{style_picture}")
+    pict_dir = f"{pict_dir_name}{message.chat.id}" # нужно для создания отдельных папок для каждого пользователя. Вид - ./dataUSERIDNUMBER/
+    style_picture = f"{pict_dir}/{message.photo[-1].file_id}.jpg" # путь для сохранения изображения
+    await message.photo[-1].download(destination_file=f"{style_picture}") # сохранение изображения стиля
 
-    elif message['document']:
-        style_picture = f"{pict_dir}/{message.document.file_name}"
-        await message.document.download(destination_file=style_picture)
+    await state.update_data(style=style_picture) # полученное изображение (точнее путь до него) передаем в переменную content
 
-    else:
-        await state.finish()
-        await message.answer('Wrong format! \nTry again /start')
-        return
-    await state.update_data(style=style_picture)
-
+    # Далее выводится inline клавиатура с выбором глубины обучения
     await message.answer('Выберите глубину копирования стиля. Чем глубже копирование стиля, тем дольше будет идти обработка', reply_markup=inline_keyboard_confirm)
 
 
 @dp.callback_query_handler(text=['50epochs', '300epochs', '600epochs'], state='*')
 async def agree(call: types.CallbackQuery, state: FSMContext):
-    data = await state.get_data()
+    """
+    Хэндлер ловит ответ на инлайн клавиатуру с выбором глубины обучения
+
+
+    """
+    data = await state.get_data() # достаем сохраненные переменные с путями к изображениям и id пользователя
     content = data.get('content')
     style = data.get('style')
     id_chat = data.get('id_chat')
 
+    # далее в зависимости от выбранной глубины будут инициализорованы переменные с определенными величинами
     if call.data == '50epochs':
         epochs = 50
-        sec = 15
         deep = 'не глубокое'
     elif call.data == '300epochs':
         epochs = 300
-        sec = 40
         deep = 'среднее'
     elif call.data == '600epochs':
         epochs = 600
-        sec = 60
         deep = 'глубокое'
     else:
-        await state.finish()
-        # delete pictures
+        await state.finish() # останавливаем машину состояний
+        # удаляем исходные изображения
         for file in [content, style]:
             await delete_pict(f"{file}")
 
         await call.message.answer(f"/start for another picture")
         return
 
-    await state.finish()
-    await call.message.answer(f"Вы выбрали: {deep} копирование стиля. Это займет около {sec} секунд...")
-    """to neural transfer"""
+    await state.finish()  # останавливаем машину состояний, т.к. все перменные пойманы
+    await call.message.answer(f"Вы выбрали: {deep} копирование стиля. Пожалуйста, ожидайте...")
 
+    """to neural transfer
+    далее вызываем наш "коннектор" к нейросети, который возвращает путь 
+    к обработанному изображению в переменную out
+    """
     out = await run_style_transfer(content, style, num_steps=epochs)
 
     pict = types.InputFile(path_or_bytesio=f"{out}")
     await call.message.answer(f"Готово")
+    # отправляем изображение пользователю
     await call.message.answer_photo(photo=pict)
-    with open(out, 'rb') as picture:
-        await call.message.answer_document(document=picture)
 
-    # delete pictures from hdd
+    # удаляем исходные изображения и итоговое изображение
     for file in [content, style, out]:
         await delete_pict(f"{file}")
     await delete_pict(f"{pict_dir_name}{id_chat}", directory=True)
+
     await call.message.answer(text='Выберите действие: ', reply_markup=start_buttons)
 
 

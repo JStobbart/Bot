@@ -1,5 +1,11 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
+"""
+классы Finite state machine
+Для двух нейросетей
+
+"""
+
 
 class Transform(StatesGroup):
     id_chat = State()
