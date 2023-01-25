@@ -42,15 +42,10 @@
 - Клонируйте репозиторий и перейдите в папку бота:
 
 ```bash
-git clone https://github.com/JStobbart/Bot.git
+git clone --recurse-submodules https://github.com/JStobbart/Bot.git
 cd Bot
 ```
 
-- Клонируйте официальный репозиторий [CycleGAN in pytorch](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix):
-
-```bash
-git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
-```
 
 - Создайте и активируйте виртуальное окружение
 
@@ -87,15 +82,11 @@ python3 main.py
 - Клонируйте репозиторий и перейдите в папку бота:
 
 ```bash
-git clone https://github.com/JStobbart/Bot.git
+git clone --recurse-submodules https://github.com/JStobbart/Bot.git
 cd Bot
 ```
 
-- Клонируйте официальный репозиторий [CycleGAN in pytorch](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix):
 
-```bash
-git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
-```
 
 #### Подготовка Dockerfile, сборка и запуск образа
 
