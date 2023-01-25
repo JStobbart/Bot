@@ -8,6 +8,14 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+result/
+checkpoints/pretrained_models/style_aivazovsky_pretrained/test_opt.txt
+checkpoints/pretrained_models/style_cezanne_pretrained/test_opt.txt
+checkpoints/pretrained_models/style_monet_pretrained/test_opt.txt
+checkpoints/pretrained_models/style_ukiyoe_pretrained/test_opt.txt
+checkpoints/pretrained_models/style_vangogh_pretrained/test_opt.txt
+checkpoints/pretrained_models/summer2winter_yosemite_pretrained/test_opt.txt
+checkpoints/pretrained_models/winter2summer_yosemite_pretrained/test_opt.txt
 .Python
 build/
 develop-eggs/
