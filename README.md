@@ -128,7 +128,7 @@ cd Bot
     - Запустите docker image
 
       ```bash
-      docker run -gpus all -d bot
+      docker run --gpus all -d bot
       ```
 
 ## При создании бота были использованы следующие материалы:
