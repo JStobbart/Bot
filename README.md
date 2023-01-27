@@ -1,6 +1,8 @@
 # Bot
 
-<img src='screens/multidog.jpeg' width="400px"/>
+<img src='screens/neural_merged.png' width="1224px"/>
+<img src='screens/merged_1_row.jpg' width="1224px"/>
+<img src='screens/merged_2_row.jpg' width="1224px"/>
 
 [Бот](https://t.me/DeepTransferBot) разработан [студентом](https://t.me/Satiata) Школы глубокого обучения МФТИ в рамках дипломного проекта "Телеграм-боты".
 
