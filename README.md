@@ -1,8 +1,8 @@
-# Bot
-
 ## Бот осуществляет стилизацию изображений двумя способами:  
+
 ### 1 - Neural Transfer - перенос стиля с одного изображения на другое  
-<img src='screens/neural_merged.png' width="1224px"/>
+<img src='screens/neural_merged.png' width="1224px"/>  
+
 ### 2 - StyleGAN - применение заготовленных стилей к изображению
 <img src='screens/merged_1_row.jpg' width="1224px"/>
 <img src='screens/merged_2_row.jpg' width="1224px"/>
